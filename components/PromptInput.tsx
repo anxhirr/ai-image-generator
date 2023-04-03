@@ -16,13 +16,19 @@ const PromptInput = () => {
     revalidateOnFocus: false,
   })
 
+  const loading = isLoading || isValidating
+
   return (
     <div className='m-10'>
       <form className='flex flex-col rounded-md border shadow-md shadow-slate-400/10 lg:flex-row lg:divide-x'>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder='Enter a prompt...'
+          placeholder={
+            (loading && 'ChatGPT is thinking of a suggestion...') ||
+            suggestion ||
+            'Enter a prompt...'
+          }
           className='flex-1 rounded-md p-4 outline-none'
         />
         <button
@@ -39,10 +45,22 @@ const PromptInput = () => {
         <button className='bg-violet-400 p-4 font-bold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:text-gray-300'>
           Use Suggestion
         </button>
-        <button className='bg-white p-4 font-bold text-violet-500 transition-colors duration-200 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:text-gray-300'>
+        <button
+          type='button'
+          onClick={mutate}
+          className='bg-white p-4 font-bold text-violet-500 transition-colors duration-200 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:text-gray-300'
+        >
           New Suggestion
         </button>
       </form>
+      {prompt && (
+        <p className='mt-4 italic font-light'>
+          Suggestion:{' '}
+          <span className='text-violet-500'>
+            {loading ? 'ChatGPT is thinking...' : suggestion}
+          </span>
+        </p>
+      )}
     </div>
   )
 }

@@ -1,5 +1,4 @@
 export async function GET(request: Request) {
-  // connect to Microsoft Azure Function
   const response = await fetch(
     'http://localhost:7071/api/getChatGPTSuggestion',
     {
