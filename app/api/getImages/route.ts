@@ -1,5 +1,5 @@
 export async function GET(req: Request) {
-  const response = await fetch('http://localhost:7071/api/getImages', {
+  const response = await fetch(process.env.AZURE_GET_IMAGE_URL!, {
     cache: 'no-store',
   })
 
