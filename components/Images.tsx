@@ -21,6 +21,22 @@ const Images = () => {
 
   console.log('images', images)
 
-  return <div>Images</div>
+  return (
+    <div>
+      <div>
+        {images?.imageUrls?.map((image: Image) => (
+          <div key={image.name}>
+            <Image
+              src={image.url}
+              alt={image.name}
+              width={800}
+              height={800}
+              className='w-full shadow-2xl rounded-sm drop-shadow-lg -z-10'
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 export default Images

@@ -4,7 +4,7 @@ const nextConfig = {
     appDir: true,
   },
   images: {
-    // domains: ['tinyurl.com'],
+    domains: ['anxhirraiimagegenea10bf3.blob.core.windows.net'],
   },
 }
 
