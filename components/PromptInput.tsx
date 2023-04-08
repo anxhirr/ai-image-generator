@@ -1,39 +1,64 @@
 'use client'
 
-import fetchSuggestionFromChatGPT from '@/lib/fetchSuggestionFromChatGPT'
 import { FormEvent, useState } from 'react'
-import useSwr from 'swr'
+import useSWR from 'swr'
+import fetchImages from '../lib/fetchImages'
+import fetchSuggestionFromChatGPT from '../lib/fetchSuggestionFromChatGPT'
+import toast from 'react-hot-toast'
 
-const PromptInput = () => {
-  const [prompt, setPrompt] = useState('')
+function PromptInput() {
+  const [input, setInput] = useState('')
 
   const {
     data: suggestion,
     isLoading,
     mutate,
     isValidating,
-  } = useSwr('/api/suggestions', fetchSuggestionFromChatGPT, {
+  } = useSWR('suggestion', fetchSuggestionFromChatGPT, {
     revalidateOnFocus: false,
   })
 
-  const loading = isLoading || isValidating
+  const { mutate: updateImages } = useSWR('images', fetchImages, {
+    revalidateOnFocus: false,
+  })
 
   const submitPrompt = async (useSuggestion?: boolean) => {
-    const inputPrompt = useSuggestion ? suggestion : prompt
-    setPrompt('')
+    const inputPrompt = input
+    console.log(inputPrompt)
+    setInput('')
 
-    console.log('Submitting prompt:', inputPrompt)
+    const notificationPrompt = inputPrompt || suggestion
+    const notificationPromptShort = notificationPrompt.slice(0, 20)
+
+    const notification = toast.loading(
+      `DALL·E is creating: ${notificationPromptShort}...`
+    )
+
+    const p = useSuggestion
+      ? suggestion
+      : inputPrompt || (!isLoading && !isValidating && suggestion)
 
     const res = await fetch('/api/generateImage', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt: inputPrompt }),
+      body: JSON.stringify({
+        prompt: p,
+      }),
     })
 
     const data = await res.json()
-    console.log(data)
+
+    if (data.error) {
+      toast.error(data.error)
+    } else {
+      toast.success(`Your AI Art has been Generated!`, {
+        id: notification,
+      })
+    }
+
+    updateImages()
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -42,49 +67,54 @@ const PromptInput = () => {
     await submitPrompt()
   }
 
+  const loading = isValidating || isLoading
+
   return (
     <div className='m-10'>
       <form
         onSubmit={handleSubmit}
-        className='flex flex-col rounded-md border shadow-md shadow-slate-400/10 lg:flex-row lg:divide-x'
+        className='flex flex-col lg:flex-row shadow-md shadow-slate-400/10 border rounded-md lg:divide-x'
       >
         <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
           placeholder={
             (loading && 'ChatGPT is thinking of a suggestion...') ||
             suggestion ||
             'Enter a prompt...'
           }
-          className='flex-1 rounded-md p-4 outline-none'
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className='flex-1 p-4 outline-none rounded-md'
         />
         <button
-          className={`p4 font-bold ${
-            prompt
+          className={`p-4 ${
+            input
               ? 'bg-violet-500 text-white transition-colors duration-200'
-              : 'text-gray-300 cursor-not-allowed '
-          }`}
+              : 'text-gray-300 cursor-not-allowed'
+          } font-bold`}
           type='submit'
-          disabled={!prompt}
+          disabled={!input}
         >
           Generate
         </button>
         <button
+          className={`p-4 bg-violet-400 text-white transition-colors duration-200 font-bold disabled:text-gray-300 disabled:cursor-not-allowed disabled:bg-gray-400`}
           onClick={() => submitPrompt(true)}
-          className='bg-violet-400 p-4 font-bold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:text-gray-300'
+          disabled={isLoading || isValidating}
+          type='button'
         >
           Use Suggestion
         </button>
         <button
-          type='button'
+          className={`p-4 bg-white text-violet-500 border-none transition-colors duration-200 rounded-b-md md:rounded-r-md md:rounded-bl-none font-bold`}
           onClick={mutate}
-          className='bg-white p-4 font-bold text-violet-500 transition-colors duration-200 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:text-gray-300'
+          type='button'
         >
           New Suggestion
         </button>
       </form>
-      {prompt && (
-        <p className='mt-4 italic font-light'>
+
+      {input && (
+        <p className='italic pt-2 pl-2 font-light'>
           Suggestion:{' '}
           <span className='text-violet-500'>
             {loading ? 'ChatGPT is thinking...' : suggestion}
@@ -94,4 +124,5 @@ const PromptInput = () => {
     </div>
   )
 }
+
 export default PromptInput

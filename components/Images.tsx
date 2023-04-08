@@ -16,7 +16,7 @@ const Images = () => {
     error,
     isLoading,
     isValidating,
-  } = useSWR('/api/getImages', fetchImages, {
+  } = useSWR('images', fetchImages, {
     revalidateOnFocus: false,
   })
 
@@ -41,7 +41,7 @@ const Images = () => {
       <div className='grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 px-0 md:px-10'>
         {images?.imageUrls?.map((image: Image, i: Number) => (
           <div
-            className={`cursor-help relative 
+            className={`relative 
             hover:scale-[104%] transition-transform duration-200 ease-in-out
             ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
             key={image.name}
